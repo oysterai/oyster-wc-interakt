@@ -4,9 +4,8 @@
  * Plugin URI:        https://oysterskin.com/woocommerce
  * Description:       Send Oyster skin scan results and product recommendations to shoppers on WhatsApp, through your own Interakt account. Requires Oyster for WooCommerce.
  * Version:           0.1.0
- * Requires at least: 6.5
+ * Requires at least: 6.4
  * Requires PHP:      8.1
- * Requires Plugins:  oyster-woocommerce, woocommerce
  * Author:            Oyster Skin
  * Author URI:        https://oysterskin.com
  * License:           GPL-2.0-or-later
@@ -77,6 +76,10 @@ function meets_requirements(): bool {
 	return true;
 }
 
+/*
+ * WooCommerce loads on `plugins_loaded` priority 10, so booting at 20 is what makes
+ * the `WooCommerce` class check below reliable.
+ */
 add_action(
 	'plugins_loaded',
 	static function (): void {
@@ -84,6 +87,15 @@ add_action(
 			return;
 		}
 
+		$missing = Plugin::missing_dependencies();
+
+		if ( array() !== $missing ) {
+			add_action( 'admin_notices', static fn () => Plugin::dependency_notice( $missing ) );
+
+			return;
+		}
+
 		Plugin::instance()->boot();
-	}
+	},
+	20
 );

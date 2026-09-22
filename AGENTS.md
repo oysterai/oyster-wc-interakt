@@ -15,15 +15,18 @@ WooCommerce**, fetches the detail those hooks point at, and forwards it to
 Interakt. The merchant designs the message templates and automations in their
 own Interakt dashboard, in their own words.
 
-Requires the Oyster for WooCommerce plugin, connected. Both it and WooCommerce
-are declared in the `Requires Plugins` header, so WordPress refuses activation
-without them.
+Requires the Oyster for WooCommerce plugin, connected, and WooCommerce itself.
+WooCommerce is checked even though no WooCommerce API is called here, because
+Action Scheduler ships inside it and every queued send goes through it. The
+Oyster plugin cannot stand in for that check: it still loads when WooCommerce is
+absent, defining its version constant while never booting.
 
-WooCommerce is named even though no WooCommerce API is called here, because
-Action Scheduler ships inside it and this plugin queues all its work there.
-Relying on the Oyster plugin to pull it in would leave a gap: that plugin still
-loads when WooCommerce is missing, so its version constant is defined while it
-never boots.
+**Both are checked at runtime, not declared in a `Requires Plugins` header.**
+That header resolves on the installed folder name rather than the plugin's
+identity, so a dependency installed from a zip (a GitHub download names its
+folder `-main`) reads as absent however active it is. WordPress then refuses
+activation permanently, telling the merchant to install something they already
+have. A runtime failure that names what is missing is recoverable; that is not.
 
 ## Architecture
 
