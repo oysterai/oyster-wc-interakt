@@ -9,7 +9,6 @@ declare( strict_types=1 );
 
 namespace Oyster\WcInterakt\Admin;
 
-use Oyster\WcInterakt\Plugin;
 use Oyster\WcInterakt\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -59,12 +58,6 @@ final class Settings_Screen {
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Oyster WhatsApp', 'oyster-wc-interakt' ); ?></h1>
-
-			<?php if ( ! Plugin::companion_active() ) : ?>
-				<div class="notice notice-error">
-					<p><?php esc_html_e( 'Oyster for WooCommerce is not active. Nothing will be sent until it is installed and connected.', 'oyster-wc-interakt' ); ?></p>
-				</div>
-			<?php endif; ?>
 
 			<?php if ( isset( $_GET['updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<div class="notice notice-success is-dismissible">

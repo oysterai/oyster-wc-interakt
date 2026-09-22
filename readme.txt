@@ -1,7 +1,7 @@
 === Oyster WhatsApp for WooCommerce ===
 Contributors: oysterskin
 Tags: woocommerce, whatsapp, interakt, skincare, notifications
-Requires at least: 6.4
+Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
 Stable tag: 0.1.0
