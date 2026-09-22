@@ -1,0 +1,13 @@
+{
+    "name": "oyster-wc-interakt",
+    "private": true,
+    "scripts": {
+        "env:start": "wp-env start",
+        "env:stop": "wp-env stop",
+        "env:prepare": "wp-env run tests-cli wp plugin install woocommerce",
+        "test:integration": "npm run env:prepare && wp-env run tests-cli --env-cwd=wp-content/plugins/oyster-wc-interakt ./vendor/bin/phpunit -c phpunit-integration.xml"
+    },
+    "devDependencies": {
+        "@wordpress/env": "^11.15.0"
+    }
+}
