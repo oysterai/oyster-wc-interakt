@@ -105,9 +105,9 @@ final class Dispatcher {
 	}
 
 	/**
-	 * Who the customer is. Consent flags ride along so the merchant can segment their
-	 * own promotional sends on them; they do not gate this one. A scan result is what
-	 * the shopper asked for by scanning.
+	 * Consent flags ride along so the merchant can segment their own promotional sends
+	 * on them; they do not gate this one. A scan result is what the shopper asked for
+	 * by scanning.
 	 *
 	 * @param array<string, mixed> $payload Delivery payload.
 	 * @return array<string, mixed>
@@ -128,8 +128,8 @@ final class Dispatcher {
 	}
 
 	/**
-	 * What happened. Names and links only: the analysis itself stays out of a
-	 * marketing tool's timeline.
+	 * Names and links only: the analysis itself stays out of a marketing tool's
+	 * timeline.
 	 *
 	 * @param array<string, mixed> $payload Delivery payload.
 	 * @return array<string, mixed>
@@ -152,8 +152,8 @@ final class Dispatcher {
 	}
 
 	/**
-	 * Fills the template's {{1}}..{{4}}, in this order. Documented in readme.txt,
-	 * because the merchant writes the template against it.
+	 * This order is a published contract: the merchant writes their template against
+	 * it, and the settings screen lists it. Reordering breaks live templates.
 	 *
 	 * @param array<string, mixed> $payload Delivery payload.
 	 * @return list<string>

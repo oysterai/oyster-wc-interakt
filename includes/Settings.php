@@ -81,7 +81,7 @@ final class Settings {
 
 	/**
 	 * Empty means "event only". A template name switches on the direct send, which is
-	 * the only path that can attach the report and fill a dynamic checkout button.
+	 * the only path that can attach the report.
 	 */
 	public static function template_name( string $event ): string {
 		return (string) ( self::all()[ 'template_' . $event ] ?? '' );

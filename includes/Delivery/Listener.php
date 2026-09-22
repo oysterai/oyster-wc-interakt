@@ -40,8 +40,6 @@ final class Listener {
 	}
 
 	/**
-	 * Queues the work and returns.
-	 *
 	 * Nothing here may call Interakt. These hooks fire inside the request Oyster makes
 	 * to deliver the webhook, which has a short timeout and disables the endpoint after
 	 * a run of failures. An Interakt outage reached from here would take the store's

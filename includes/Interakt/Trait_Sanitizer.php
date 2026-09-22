@@ -70,8 +70,6 @@ final class Trait_Sanitizer {
 	private static function text( string $value ): string {
 		$value = wp_strip_all_tags( $value );
 
-		// Every run of whitespace becomes one space, which covers newlines, tabs and
-		// the three-space rule in a single pass.
 		$value = (string) preg_replace( '/\s+/u', ' ', $value );
 		$value = trim( $value );
 
