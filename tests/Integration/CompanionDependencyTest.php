@@ -31,7 +31,14 @@ final class CompanionDependencyTest extends WP_UnitTestCase {
 		// The header is the actual enforcement; the notice below is only the fallback.
 		$data = get_plugin_data( dirname( __DIR__, 2 ) . '/oyster-wc-interakt.php', false, false );
 
-		$this->assertSame( 'oyster-woocommerce', $data['RequiresPlugins'] );
+		$required = array_map( 'trim', explode( ',', (string) $data['RequiresPlugins'] ) );
+
+		$this->assertContains( 'oyster-woocommerce', $required );
+
+		// Named directly rather than leaned on transitively: Action Scheduler ships
+		// inside WooCommerce, and the Oyster plugin still loads (defining its version
+		// constant) when WooCommerce is absent, so it never boots but looks present.
+		$this->assertContains( 'woocommerce', $required );
 	}
 
 	public function test_it_says_so_on_the_plugins_screen_when_the_companion_is_gone(): void {

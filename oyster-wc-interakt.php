@@ -6,7 +6,7 @@
  * Version:           0.1.0
  * Requires at least: 6.5
  * Requires PHP:      8.1
- * Requires Plugins:  oyster-woocommerce
+ * Requires Plugins:  oyster-woocommerce, woocommerce
  * Author:            Oyster Skin
  * Author URI:        https://oysterskin.com
  * License:           GPL-2.0-or-later
@@ -85,8 +85,5 @@ add_action(
 		}
 
 		Plugin::instance()->boot();
-	},
-	// After the Oyster plugin, whose action hooks this one listens for. It fires
-	// them at the default priority, so registering later is enough.
-	11
+	}
 );
