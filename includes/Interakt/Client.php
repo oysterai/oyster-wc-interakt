@@ -56,51 +56,6 @@ final class Client {
 	}
 
 	/**
-	 * Sends a named template directly. The only path that can carry a document header,
-	 * which is how the report PDF reaches the customer without a hosted page.
-	 *
-	 * The checkout link travels as a body variable rather than a dynamic URL button:
-	 * WhatsApp button variables are a suffix onto a prefix fixed at template approval,
-	 * which an arbitrary storefront URL with a query string does not fit.
-	 *
-	 * @param list<string> $body_values Fills {{1}}, {{2}}, ... in order.
-	 * @return true|WP_Error
-	 */
-	public function send_template(
-		string $country_code,
-		string $phone_number,
-		string $template_name,
-		string $language_code,
-		array $body_values,
-		?string $header_media_url = null,
-		?string $header_file_name = null
-	) {
-		$template = array(
-			'name'         => $template_name,
-			'languageCode' => $language_code,
-			'bodyValues'   => array_values( $body_values ),
-		);
-
-		if ( null !== $header_media_url && '' !== $header_media_url ) {
-			$template['headerValues'] = array( $header_media_url );
-
-			if ( null !== $header_file_name && '' !== $header_file_name ) {
-				$template['fileName'] = $header_file_name;
-			}
-		}
-
-		return $this->post(
-			'/v1/public/message/',
-			array(
-				'countryCode' => $country_code,
-				'phoneNumber' => $phone_number,
-				'type'        => 'Template',
-				'template'    => $template,
-			)
-		);
-	}
-
-	/**
 	 * @param array<string, mixed> $payload Request body.
 	 * @return true|WP_Error
 	 */

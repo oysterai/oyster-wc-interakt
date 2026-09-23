@@ -65,20 +65,6 @@ final class Settings {
 		return self::EVENT_SCAN === $event ? 'Skin Scan Completed' : 'Skin Recommendations Ready';
 	}
 
-	/**
-	 * Empty means "event only". A template name switches on the direct send, which is
-	 * the only path that can attach the report.
-	 */
-	public static function template_name( string $event ): string {
-		return (string) ( self::all()[ 'template_' . $event ] ?? '' );
-	}
-
-	public static function template_language( string $event ): string {
-		$stored = (string) ( self::all()[ 'template_language_' . $event ] ?? '' );
-
-		return '' !== $stored ? $stored : 'en';
-	}
-
 	public static function is_configured(): bool {
 		return null !== self::interakt_api_key();
 	}
@@ -94,10 +80,8 @@ final class Settings {
 		);
 
 		foreach ( array( self::EVENT_SCAN, self::EVENT_RECOMMENDATION ) as $event ) {
-			$settings[ 'enable_' . $event ]            = ! empty( $input[ 'enable_' . $event ] );
-			$settings[ 'event_name_' . $event ]        = sanitize_text_field( (string) ( $input[ 'event_name_' . $event ] ?? '' ) );
-			$settings[ 'template_' . $event ]          = sanitize_text_field( (string) ( $input[ 'template_' . $event ] ?? '' ) );
-			$settings[ 'template_language_' . $event ] = sanitize_text_field( (string) ( $input[ 'template_language_' . $event ] ?? '' ) );
+			$settings[ 'enable_' . $event ]     = ! empty( $input[ 'enable_' . $event ] );
+			$settings[ 'event_name_' . $event ] = sanitize_text_field( (string) ( $input[ 'event_name_' . $event ] ?? '' ) );
 		}
 
 		update_option( self::OPTION, $settings, false );

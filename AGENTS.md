@@ -11,9 +11,13 @@ the merchant's own [Interakt](https://www.interakt.shop) account.
 
 It is an add-on. It does no scanning, stores no results, and renders nothing on
 the storefront. It listens for the action hooks fired by **Oyster for
-WooCommerce**, fetches the detail those hooks point at, and forwards it to
-Interakt. The merchant designs the message templates and automations in their
-own Interakt dashboard, in their own words.
+WooCommerce**, fetches the detail those hooks point at, and records it against
+the shopper in Interakt.
+
+**It never sends a message.** It pushes data and stops. The merchant builds the
+automation in Interakt and decides what the shopper receives. Do not add a send
+path here: the moment this plugin composes messages, their design language and
+ours have to be kept in step.
 
 Requires the Oyster for WooCommerce plugin, connected, and WooCommerce itself.
 WooCommerce is checked even though no WooCommerce API is called here, because
@@ -97,9 +101,8 @@ account level, and the merchant is the data controller.
   `oyster_woocommerce_api_get` filter, so the store's key stays with the plugin
   that owns it and dies with the connection. Never read or decrypt that option
   directly, and never add a second Oyster key to the settings screen.
-- **Customer phone numbers and names leave the site on this path.** Send the
-  minimum a template needs. Do not widen the payload because a field happened
-  to be available.
+- **Customer phone numbers and names leave the site on this path.** Send what an
+  automation needs to build a message, not everything the API returns.
 - **Do not send skin analysis detail as traits.** Scores, concern severities
   and raw analysis stay out. The scan detail is reachable by the merchant
   through their own dashboard; it does not belong in a marketing tool's user

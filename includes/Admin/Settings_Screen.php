@@ -94,16 +94,6 @@ final class Settings_Screen {
 				);
 				?>
 
-				<h2><?php esc_html_e( 'Writing your template', 'oyster-wc-interakt' ); ?></h2>
-				<p><?php esc_html_e( 'Leave a template name blank to record the event only, and build the message yourself in Interakt. Name a template and this plugin sends it directly, which is the only way to attach the PDF report.', 'oyster-wc-interakt' ); ?></p>
-				<p><?php esc_html_e( 'A named template is sent with the report PDF as its document header, and these body variables in order:', 'oyster-wc-interakt' ); ?></p>
-				<ol>
-					<li><code>{{1}}</code> &mdash; <?php esc_html_e( "the shopper's first name", 'oyster-wc-interakt' ); ?></li>
-					<li><code>{{2}}</code> &mdash; <?php esc_html_e( 'the one-line summary of their scan', 'oyster-wc-interakt' ); ?></li>
-					<li><code>{{3}}</code> &mdash; <?php esc_html_e( 'their recommended products, comma separated', 'oyster-wc-interakt' ); ?></li>
-					<li><code>{{4}}</code> &mdash; <?php esc_html_e( 'a link that adds those products to their cart', 'oyster-wc-interakt' ); ?></li>
-				</ol>
-
 				<?php submit_button(); ?>
 			</form>
 		</div>
@@ -128,14 +118,6 @@ final class Settings_Screen {
 				<td>
 					<input name="event_name_<?php echo esc_attr( $event ); ?>" id="event_name_<?php echo esc_attr( $event ); ?>" type="text" class="regular-text" value="<?php echo esc_attr( Settings::event_name( $event ) ); ?>" />
 					<p class="description"><?php esc_html_e( 'What this event is called on the customer timeline in Interakt.', 'oyster-wc-interakt' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label for="template_<?php echo esc_attr( $event ); ?>"><?php esc_html_e( 'Template name', 'oyster-wc-interakt' ); ?></label></th>
-				<td>
-					<input name="template_<?php echo esc_attr( $event ); ?>" id="template_<?php echo esc_attr( $event ); ?>" type="text" class="regular-text" value="<?php echo esc_attr( Settings::template_name( $event ) ); ?>" />
-					<input name="template_language_<?php echo esc_attr( $event ); ?>" type="text" class="small-text" value="<?php echo esc_attr( Settings::template_language( $event ) ); ?>" aria-label="<?php esc_attr_e( 'Template language code', 'oyster-wc-interakt' ); ?>" />
-					<p class="description"><?php esc_html_e( 'The template code name from Interakt, and its language code. Blank sends no message.', 'oyster-wc-interakt' ); ?></p>
 				</td>
 			</tr>
 		</table>

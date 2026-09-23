@@ -102,7 +102,12 @@ final class DeliveryTest extends WP_UnitTestCase {
 						'report_url'   => 'https://api.example.test/api/v1/skin/reports/' . self::BATCH . '?expires=1&signature=abc',
 						'checkout_url' => 'https://store.test/?oyster_checkout=1',
 						'products'     => array(
-							array( 'name' => 'Calming Cleanser', 'brand' => 'Acme', 'step' => 'Step 1: Cleanser' ),
+							array(
+								'name'      => 'Calming Cleanser',
+								'brand'     => 'Acme',
+								'step'      => 'Step 1: Cleanser',
+								'image_url' => 'https://cdn.example.test/cleanser.png',
+							),
 						),
 						'customer'     => array(
 							'name'      => 'Ada Obi',
@@ -173,6 +178,31 @@ final class DeliveryTest extends WP_UnitTestCase {
 		$this->assertSame( '8012345678', $event['phoneNumber'] );
 		// Sanitised on the way out: Interakt rejects newlines in a trait value.
 		$this->assertSame( 'Hey Ada, your barrier is intact.', $event['traits']['headline'] );
+	}
+
+	public function test_it_pushes_product_images_so_the_vendor_can_build_their_own_card(): void {
+		$this->oyster_returns();
+
+		( new Dispatcher() )->deliver( self::BATCH, Settings::EVENT_SCAN );
+
+		$event = null;
+		foreach ( $this->requests as $request ) {
+			if ( false !== strpos( $request['url'], '/track/events/' ) ) {
+				$event = $request['body'];
+			}
+		}
+
+		$this->assertSame( array( 'Calming Cleanser' ), $event['traits']['products'] );
+		$this->assertSame( array( 'https://cdn.example.test/cleanser.png' ), $event['traits']['product_images'] );
+	}
+
+	public function test_it_never_sends_a_message_itself(): void {
+		$this->oyster_returns();
+
+		( new Dispatcher() )->deliver( self::BATCH, Settings::EVENT_SCAN );
+
+		// Data goes to Interakt; the vendor decides what becomes a message.
+		$this->assertFalse( $this->called( '/v1/public/message/' ) );
 	}
 
 	public function test_it_sends_the_result_even_when_whatsapp_marketing_is_declined(): void {
@@ -258,50 +288,14 @@ final class DeliveryTest extends WP_UnitTestCase {
 	public function test_it_does_not_retry_a_payload_interakt_refused(): void {
 		// The same request would be refused again.
 		$this->oyster_returns();
-		$this->responses['interakt'] = array( 'code' => 400, 'body' => array( 'message' => 'Invalid template' ) );
+		$this->responses['interakt'] = array( 'code' => 400, 'body' => array( 'message' => 'Invalid payload' ) );
 
 		( new Dispatcher() )->deliver( self::BATCH, Settings::EVENT_SCAN );
 
 		$this->assertSame( array(), as_get_scheduled_actions( array( 'hook' => Listener::ACTION, 'group' => Listener::GROUP ) ) );
 	}
 
-	public function test_it_sends_no_template_until_one_is_named(): void {
-		$this->oyster_returns();
 
-		( new Dispatcher() )->deliver( self::BATCH, Settings::EVENT_SCAN );
-
-		$this->assertFalse( $this->called( '/v1/public/message/' ) );
-	}
-
-	public function test_a_named_template_carries_the_report_and_the_cart_link(): void {
-		$this->oyster_returns();
-		Settings::save(
-			array(
-				'enable_' . Settings::EVENT_SCAN   => '1',
-				'template_' . Settings::EVENT_SCAN => 'skin_result',
-			)
-		);
-
-		( new Dispatcher() )->deliver( self::BATCH, Settings::EVENT_SCAN );
-
-		$message = null;
-		foreach ( $this->requests as $request ) {
-			if ( false !== strpos( $request['url'], '/v1/public/message/' ) ) {
-				$message = $request['body'];
-			}
-		}
-
-		$this->assertNotNull( $message );
-		$this->assertSame( 'skin_result', $message['template']['name'] );
-		$this->assertStringContainsString( '/skin/reports/', $message['template']['headerValues'][0] );
-		$this->assertStringEndsWith( '.pdf', $message['template']['fileName'] );
-
-		// The documented body-variable order the merchant writes their template against.
-		$this->assertSame( 'Ada', $message['template']['bodyValues'][0] );
-		$this->assertSame( 'Hey Ada, your barrier is intact.', $message['template']['bodyValues'][1] );
-		$this->assertSame( 'Calming Cleanser', $message['template']['bodyValues'][2] );
-		$this->assertSame( 'https://store.test/?oyster_checkout=1', $message['template']['bodyValues'][3] );
-	}
 
 	public function test_it_does_nothing_until_the_interakt_key_is_set(): void {
 		delete_option( Settings::OPTION );
