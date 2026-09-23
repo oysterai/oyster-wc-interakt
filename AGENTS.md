@@ -15,8 +15,18 @@ WooCommerce**, fetches the detail those hooks point at, and forwards it to
 Interakt. The merchant designs the message templates and automations in their
 own Interakt dashboard, in their own words.
 
-Requires the Oyster for WooCommerce plugin, connected. Does not talk to
-WooCommerce directly.
+Requires the Oyster for WooCommerce plugin, connected, and WooCommerce itself.
+WooCommerce is checked even though no WooCommerce API is called here, because
+Action Scheduler ships inside it and every queued send goes through it. The
+Oyster plugin cannot stand in for that check: it still loads when WooCommerce is
+absent, defining its version constant while never booting.
+
+**Both are checked at runtime, not declared in a `Requires Plugins` header.**
+That header resolves on the installed folder name rather than the plugin's
+identity, so a dependency installed from a zip (a GitHub download names its
+folder `-main`) reads as absent however active it is. WordPress then refuses
+activation permanently, telling the merchant to install something they already
+have. A runtime failure that names what is missing is recoverable; that is not.
 
 ## Architecture
 
@@ -83,9 +93,10 @@ account level, and the merchant is the data controller.
 - **The Interakt API key is merchant-supplied and secret.** Store it
   encrypted. Never log it, never echo it into an admin notice or a settings
   page value attribute, never include it in a support export or a bug report.
-- **Never decrypt the Oyster for WooCommerce credential directly.** That
-  plugin owns it. Go through the accessor it exposes, so one plugin remains
-  responsible for that secret.
+- **This plugin holds no Oyster credential.** Scans are read through the
+  `oyster_woocommerce_api_get` filter, so the store's key stays with the plugin
+  that owns it and dies with the connection. Never read or decrypt that option
+  directly, and never add a second Oyster key to the settings screen.
 - **Customer phone numbers and names leave the site on this path.** Send the
   minimum a template needs. Do not widen the payload because a field happened
   to be available.

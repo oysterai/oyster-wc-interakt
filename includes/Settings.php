@@ -33,22 +33,8 @@ final class Settings {
 		return is_array( $stored ) ? $stored : array();
 	}
 
-	public static function oyster_api_key(): ?string {
-		return Crypto::decrypt( self::all()['oyster_key_enc'] ?? null );
-	}
-
 	public static function interakt_api_key(): ?string {
 		return Crypto::decrypt( self::all()['interakt_key_enc'] ?? null );
-	}
-
-	public static function api_base_url(): string {
-		$configured = defined( 'OYSTER_WC_INTERAKT_API_BASE_URL' )
-			? (string) constant( 'OYSTER_WC_INTERAKT_API_BASE_URL' )
-			: '';
-
-		$base = '' !== $configured ? $configured : 'https://api.oysterskin.com';
-
-		return rtrim( $base, '/' );
 	}
 
 	public static function interakt_base_url(): string {
@@ -94,7 +80,7 @@ final class Settings {
 	}
 
 	public static function is_configured(): bool {
-		return null !== self::oyster_api_key() && null !== self::interakt_api_key();
+		return null !== self::interakt_api_key();
 	}
 
 	/**
@@ -104,7 +90,6 @@ final class Settings {
 		$current = self::all();
 
 		$settings = array(
-			'oyster_key_enc'   => self::key_value( $input, 'oyster_api_key', $current['oyster_key_enc'] ?? null ),
 			'interakt_key_enc' => self::key_value( $input, 'interakt_api_key', $current['interakt_key_enc'] ?? null ),
 		);
 

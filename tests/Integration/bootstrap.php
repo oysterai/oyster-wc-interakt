@@ -76,6 +76,16 @@ tests_add_filter(
 	'muplugins_loaded',
 	static function () use ( $_woocommerce ): void {
 		require_once $_woocommerce();
+
+		/*
+		 * Stands in for Oyster for WooCommerce, which lives in its own repository and is
+		 * not installed here. The whole contract with it is this constant and the two
+		 * actions it fires, and the tests fire those themselves, so there is nothing
+		 * further of it to stub. Without this the plugin under test correctly refuses to
+		 * boot and every delivery test would be asserting against a dead site.
+		 */
+		defined( 'OYSTER_WOO_VERSION' ) || define( 'OYSTER_WOO_VERSION', '0.20.0' );
+
 		require_once dirname( __DIR__, 2 ) . '/oyster-wc-interakt.php';
 	}
 );

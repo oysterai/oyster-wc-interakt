@@ -76,6 +76,10 @@ function meets_requirements(): bool {
 	return true;
 }
 
+/*
+ * WooCommerce loads on `plugins_loaded` priority 10, so booting at 20 is what makes
+ * the `WooCommerce` class check below reliable.
+ */
 add_action(
 	'plugins_loaded',
 	static function (): void {
@@ -83,9 +87,15 @@ add_action(
 			return;
 		}
 
+		$missing = Plugin::missing_dependencies();
+
+		if ( array() !== $missing ) {
+			add_action( 'admin_notices', static fn () => Plugin::dependency_notice( $missing ) );
+
+			return;
+		}
+
 		Plugin::instance()->boot();
 	},
-	// After the Oyster plugin, whose action hooks this one listens for. It fires
-	// them at the default priority, so registering later is enough.
-	11
+	20
 );
