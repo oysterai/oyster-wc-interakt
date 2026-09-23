@@ -30,7 +30,6 @@ adds nothing to your storefront and changes nothing about how scans work.
 
 * An Oyster vendor account with Oyster for WooCommerce connected.
 * An Interakt account with WhatsApp Business approved.
-* An Oyster API key with the "Deliver scan results" scope.
 * At least one approved WhatsApp template, if you want messages sent directly.
 
 == Privacy ==
@@ -56,15 +55,16 @@ WhatsApp requires businesses to have opt-in before sending template messages. Th
 enforced by WhatsApp against your own business account, and collecting it is your
 responsibility as the sender.
 
-Nothing is sent until you add both API keys and enable an event.
+Nothing is sent until you add your Interakt key and enable an event.
 
 == External services ==
 
 This plugin connects to two services.
 
-**Oyster** (https://api.oysterskin.com). Called with your Oyster API key to read the
-contact details, report link, checkout link and recommended products for a scan that
-happened at your store. See https://oysterskin.com/privacy for Oyster's privacy policy and
+**Oyster** (https://api.oysterskin.com). Read through Oyster for WooCommerce, using the
+credential that plugin already holds for your store, to get the contact details, report
+link, checkout link and recommended products for a scan. This plugin holds no Oyster
+credential of its own. See https://oysterskin.com/privacy for Oyster's privacy policy and
 https://oysterskin.com/terms for its terms of service.
 
 **Interakt** (https://api.interakt.ai). Called with your Interakt API key to record the
@@ -73,17 +73,16 @@ https://www.interakt.shop/privacy-policy/ for Interakt's privacy policy and
 https://www.interakt.shop/terms-of-service/ for its terms of service. Interakt is the
 sender of record for these messages, under your own WhatsApp Business account.
 
-Both API keys are stored encrypted on your site and are never displayed again after you
-save them.
+Your Interakt API key is stored encrypted on your site and is never displayed again after
+you save it.
 
 == Installation ==
 
 1. Install and connect **Oyster for WooCommerce**.
 2. Install and activate this plugin.
-3. In your Oyster dashboard, create an API key with the **Deliver scan results** scope.
-4. In Interakt, copy your API key from **Developer Settings**.
-5. Go to **Settings → Oyster WhatsApp**, paste both keys, and enable the events you want.
-6. To have messages sent directly, create and get approval for a WhatsApp template, then
+3. In Interakt, copy your API key from **Developer Settings**.
+4. Go to **Settings → Oyster WhatsApp**, paste it, and enable the events you want.
+5. To have messages sent directly, create and get approval for a WhatsApp template, then
    name it on that screen. The variables it must use are listed there.
 
 == Frequently Asked Questions ==
@@ -112,4 +111,5 @@ phone collection is switched on for your Oyster account.
 
 = 0.1.0 =
 * First release. Sends scan and recommendation events to Interakt, with an optional direct
-  template send carrying the PDF report and a cart link.
+  template send carrying the PDF report and a cart link. Reads your scans through Oyster
+  for WooCommerce, so there is no second Oyster key to create.

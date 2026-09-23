@@ -69,18 +69,8 @@ final class Settings_Screen {
 				<input type="hidden" name="action" value="oyster_wc_interakt_save" />
 				<?php wp_nonce_field( self::NONCE ); ?>
 
-				<h2><?php esc_html_e( 'Keys', 'oyster-wc-interakt' ); ?></h2>
+				<h2><?php esc_html_e( 'Interakt', 'oyster-wc-interakt' ); ?></h2>
 				<table class="form-table" role="presentation">
-					<tr>
-						<th scope="row"><label for="oyster_api_key"><?php esc_html_e( 'Oyster API key', 'oyster-wc-interakt' ); ?></label></th>
-						<td>
-							<input name="oyster_api_key" id="oyster_api_key" type="password" class="regular-text" autocomplete="off" value="" />
-							<p class="description">
-								<?php esc_html_e( 'Create one in your Oyster dashboard with the "Deliver scan results" scope. Leave blank to keep the current key.', 'oyster-wc-interakt' ); ?>
-								<?php echo Settings::oyster_api_key() ? '<strong>' . esc_html__( 'A key is stored.', 'oyster-wc-interakt' ) . '</strong>' : ''; ?>
-							</p>
-						</td>
-					</tr>
 					<tr>
 						<th scope="row"><label for="interakt_api_key"><?php esc_html_e( 'Interakt API key', 'oyster-wc-interakt' ); ?></label></th>
 						<td>

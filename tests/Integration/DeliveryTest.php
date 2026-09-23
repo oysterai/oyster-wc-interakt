@@ -20,6 +20,9 @@ final class DeliveryTest extends WP_UnitTestCase {
 	/** @var array<string, array{code: int, body: array<string, mixed>}> */
 	private array $responses = array();
 
+	/** @var array<string, mixed>|null */
+	private ?array $payload = null;
+
 	private const BATCH = '01a08bcd-71cf-7023-9cb9-c6c177845c4e';
 
 	public function set_up(): void {
@@ -27,22 +30,38 @@ final class DeliveryTest extends WP_UnitTestCase {
 
 		$this->requests  = array();
 		$this->responses = array();
+		$this->payload   = null;
 
 		Settings::save(
 			array(
-				'oyster_api_key'                         => 'oyster-test-key',
-				'interakt_api_key'                       => 'interakt-test-key',
-				'enable_' . Settings::EVENT_SCAN         => '1',
+				'interakt_api_key'                         => 'interakt-test-key',
+				'enable_' . Settings::EVENT_SCAN           => '1',
 				'enable_' . Settings::EVENT_RECOMMENDATION => '1',
 			)
 		);
 
 		add_filter( 'pre_http_request', array( $this, 'intercept' ), 10, 3 );
+		add_filter( 'oyster_woocommerce_api_get', array( $this, 'oyster_api' ), 10, 2 );
 	}
 
 	public function tear_down(): void {
 		remove_filter( 'pre_http_request', array( $this, 'intercept' ), 10 );
+		remove_filter( 'oyster_woocommerce_api_get', array( $this, 'oyster_api' ), 10 );
 		parent::tear_down();
+	}
+
+	/**
+	 * Stands in for Oyster for WooCommerce, which owns the store credential and lives
+	 * in its own repository.
+	 *
+	 * @param mixed  $response Unused.
+	 * @param string $path     API path.
+	 * @return array<string, mixed>
+	 */
+	public function oyster_api( $response, $path = '' ) {
+		$this->requests[] = array( 'url' => 'oyster:' . $path, 'body' => array() );
+
+		return array( 'data' => $this->payload );
 	}
 
 	/**
@@ -74,10 +93,7 @@ final class DeliveryTest extends WP_UnitTestCase {
 
 	/** @param array<string, mixed> $overrides Payload overrides. */
 	private function oyster_returns( array $overrides = array() ): void {
-		$this->responses['/skin/delivery/'] = array(
-			'code' => 200,
-			'body' => array(
-				'data' => array_merge(
+		$this->payload = array_merge(
 					array(
 						'batch_id'     => self::BATCH,
 						'scanned_at'   => '2026-09-22T10:00:00+00:00',
@@ -99,9 +115,7 @@ final class DeliveryTest extends WP_UnitTestCase {
 							'marketing' => array( 'email' => true, 'sms' => null, 'whatsapp' => null ),
 						),
 					),
-					$overrides
-				),
-			),
+			$overrides
 		);
 	}
 
@@ -129,6 +143,15 @@ final class DeliveryTest extends WP_UnitTestCase {
 		$this->assertNotEmpty(
 			as_get_scheduled_actions( array( 'hook' => Listener::ACTION, 'group' => Listener::GROUP ) )
 		);
+	}
+
+	public function test_it_reads_the_scan_through_the_companion_plugin(): void {
+		$this->oyster_returns();
+
+		( new Dispatcher() )->deliver( self::BATCH, Settings::EVENT_SCAN );
+
+		// No key of its own: the store credential stays with the plugin that owns it.
+		$this->assertTrue( $this->called( 'oyster:/skin/delivery/' ) );
 	}
 
 	public function test_it_records_the_customer_then_the_event(): void {
@@ -280,7 +303,7 @@ final class DeliveryTest extends WP_UnitTestCase {
 		$this->assertSame( 'https://store.test/?oyster_checkout=1', $message['template']['bodyValues'][3] );
 	}
 
-	public function test_it_does_nothing_until_both_keys_are_set(): void {
+	public function test_it_does_nothing_until_the_interakt_key_is_set(): void {
 		delete_option( Settings::OPTION );
 		Settings::save( array( 'enable_' . Settings::EVENT_SCAN => '1' ) );
 
