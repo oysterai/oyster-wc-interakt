@@ -76,7 +76,7 @@ final class Plugin {
 			esc_html(
 				sprintf(
 					/* translators: %s: comma-separated list of plugin names */
-					__( 'Oyster WhatsApp for WooCommerce needs these active, and cannot find them: %s. Nothing will be sent until they are.', 'oyster-wc-interakt' ),
+					__( 'Oyster Interakt for WooCommerce needs these active, and cannot find them: %s. Nothing will be sent until they are.', 'oyster-wc-interakt' ),
 					implode( ', ', $missing )
 				)
 			)

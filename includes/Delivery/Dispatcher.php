@@ -79,28 +79,6 @@ final class Dispatcher {
 
 		if ( is_wp_error( $result ) ) {
 			$this->handle_failure( $result, $batch_id, $event, $attempt );
-
-			return;
-		}
-
-		$template = Settings::template_name( $event );
-
-		if ( '' === $template ) {
-			return;
-		}
-
-		$result = $this->interakt->send_template(
-			$country_code,
-			$number,
-			$template,
-			Settings::template_language( $event ),
-			$this->body_values( $payload ),
-			is_string( $payload['report_url'] ?? null ) ? $payload['report_url'] : null,
-			$this->report_file_name( $payload )
-		);
-
-		if ( is_wp_error( $result ) ) {
-			$this->handle_failure( $result, $batch_id, $event, $attempt );
 		}
 	}
 
@@ -143,37 +121,22 @@ final class Dispatcher {
 				'scanned_at'    => $payload['scanned_at'] ?? null,
 				'channel'       => $payload['channel'] ?? null,
 				'headline'      => $payload['headline'] ?? null,
-				'product_count' => count( $products ),
-				'products'      => $products,
+				'product_count'  => count( $products ),
+				'products'       => $products,
+				'product_images' => $this->product_images( $payload ),
 				'report_url'    => $payload['report_url'] ?? null,
 				'checkout_url'  => $payload['checkout_url'] ?? null,
 			)
 		);
 	}
 
+
 	/**
-	 * This order is a published contract: the merchant writes their template against
-	 * it, and the settings screen lists it. Reordering breaks live templates.
-	 *
 	 * @param array<string, mixed> $payload Delivery payload.
 	 * @return list<string>
 	 */
-	private function body_values( array $payload ): array {
-		$name  = (string) ( $payload['customer']['name'] ?? '' );
-		$first = '' !== $name ? (string) strtok( $name, ' ' ) : __( 'there', 'oyster-wc-interakt' );
-
-		$values = array(
-			$first,
-			(string) ( $payload['headline'] ?? '' ),
-			implode( ', ', $this->product_names( $payload ) ),
-			(string) ( $payload['checkout_url'] ?? '' ),
-		);
-
-		// WhatsApp rejects a template variable that is empty or carries a newline.
-		return array_map(
-			static fn ( string $value ): string => '' === trim( $value ) ? '-' : trim( (string) preg_replace( '/\s+/u', ' ', $value ) ),
-			$values
-		);
+	private function product_images( array $payload ): array {
+		return $this->product_field( $payload, 'image_url' );
 	}
 
 	/**
@@ -181,27 +144,27 @@ final class Dispatcher {
 	 * @return list<string>
 	 */
 	private function product_names( array $payload ): array {
+		return $this->product_field( $payload, 'name' );
+	}
+
+	/**
+	 * @param array<string, mixed> $payload Delivery payload.
+	 * @return list<string>
+	 */
+	private function product_field( array $payload, string $field ): array {
 		$products = is_array( $payload['products'] ?? null ) ? $payload['products'] : array();
 
 		return array_values(
 			array_filter(
 				array_map(
-					static fn ( $product ): string => is_array( $product ) ? (string) ( $product['name'] ?? '' ) : '',
+					static fn ( $product ): string => is_array( $product ) ? (string) ( $product[ $field ] ?? '' ) : '',
 					$products
 				),
-				static fn ( string $name ): bool => '' !== $name
+				static fn ( string $value ): bool => '' !== $value
 			)
 		);
 	}
 
-	/**
-	 * @param array<string, mixed> $payload Delivery payload.
-	 */
-	private function report_file_name( array $payload ): string {
-		$batch = (string) ( $payload['batch_id'] ?? 'report' );
-
-		return 'skin-report-' . sanitize_file_name( substr( $batch, 0, 12 ) ) . '.pdf';
-	}
 
 	/**
 	 * Action Scheduler does not retry a failed action on its own, so a retryable

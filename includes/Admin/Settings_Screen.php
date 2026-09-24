@@ -27,8 +27,8 @@ final class Settings_Screen {
 	public function add_page(): void {
 		add_submenu_page(
 			'options-general.php',
-			__( 'Oyster WhatsApp', 'oyster-wc-interakt' ),
-			__( 'Oyster WhatsApp', 'oyster-wc-interakt' ),
+			__( 'Oyster Interakt', 'oyster-wc-interakt' ),
+			__( 'Oyster Interakt', 'oyster-wc-interakt' ),
 			'manage_options',
 			self::SLUG,
 			array( $this, 'render' )
@@ -42,11 +42,22 @@ final class Settings_Screen {
 
 		check_admin_referer( self::NONCE );
 
-		// Unslashed but not otherwise filtered here: Settings::save() sanitises each
-		// field, and the two API keys must survive verbatim.
+		// Unslashed but not otherwise filtered: Settings::save() sanitises each field,
+		// and the API key must survive verbatim.
 		Settings::save( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-		wp_safe_redirect( add_query_arg( 'updated', '1', menu_page_url( self::SLUG, false ) ) );
+		// Built by hand rather than with menu_page_url(): admin-post.php fires admin_init
+		// but never loads the admin menu, so that returns an empty string here and the
+		// redirect lands nowhere.
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'    => self::SLUG,
+					'updated' => '1',
+				),
+				admin_url( 'options-general.php' )
+			)
+		);
 		exit;
 	}
 
@@ -57,7 +68,7 @@ final class Settings_Screen {
 
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Oyster WhatsApp', 'oyster-wc-interakt' ); ?></h1>
+			<h1><?php esc_html_e( 'Oyster Interakt', 'oyster-wc-interakt' ); ?></h1>
 
 			<?php if ( isset( $_GET['updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<div class="notice notice-success is-dismissible">
@@ -71,14 +82,33 @@ final class Settings_Screen {
 
 				<h2><?php esc_html_e( 'Interakt', 'oyster-wc-interakt' ); ?></h2>
 				<table class="form-table" role="presentation">
+					<?php $has_key = null !== Settings::interakt_api_key(); ?>
 					<tr>
 						<th scope="row"><label for="interakt_api_key"><?php esc_html_e( 'Interakt API key', 'oyster-wc-interakt' ); ?></label></th>
 						<td>
-							<input name="interakt_api_key" id="interakt_api_key" type="password" class="regular-text" autocomplete="off" value="" />
-							<p class="description">
-								<?php esc_html_e( 'From Interakt, under Developer Settings. Leave blank to keep the current key.', 'oyster-wc-interakt' ); ?>
-								<?php echo Settings::interakt_api_key() ? '<strong>' . esc_html__( 'A key is stored.', 'oyster-wc-interakt' ) . '</strong>' : ''; ?>
-							</p>
+							<?php
+							/*
+							 * Masked in the placeholder, never the value. A value would be posted
+							 * back untouched on the next save and stored as the key, destroying
+							 * the real one, since only a blank field means "keep what you have".
+							 */
+							?>
+							<input
+								name="interakt_api_key"
+								id="interakt_api_key"
+								type="password"
+								class="regular-text"
+								autocomplete="off"
+								value=""
+								placeholder="<?php echo esc_attr( $has_key ? str_repeat( '•', 28 ) : '' ); ?>" />
+							<?php if ( $has_key ) : ?>
+								<p class="description" style="color:#00a32a;">
+									<span class="dashicons dashicons-yes-alt" style="vertical-align:text-bottom;"></span>
+									<?php esc_html_e( 'A key is saved. Leave this blank to keep it, or paste a new one to replace it.', 'oyster-wc-interakt' ); ?>
+								</p>
+							<?php else : ?>
+								<p class="description"><?php esc_html_e( 'From Interakt, under Developer Settings.', 'oyster-wc-interakt' ); ?></p>
+							<?php endif; ?>
 						</td>
 					</tr>
 				</table>
@@ -93,16 +123,6 @@ final class Settings_Screen {
 					__( 'When recommendations are ready', 'oyster-wc-interakt' )
 				);
 				?>
-
-				<h2><?php esc_html_e( 'Writing your template', 'oyster-wc-interakt' ); ?></h2>
-				<p><?php esc_html_e( 'Leave a template name blank to record the event only, and build the message yourself in Interakt. Name a template and this plugin sends it directly, which is the only way to attach the PDF report.', 'oyster-wc-interakt' ); ?></p>
-				<p><?php esc_html_e( 'A named template is sent with the report PDF as its document header, and these body variables in order:', 'oyster-wc-interakt' ); ?></p>
-				<ol>
-					<li><code>{{1}}</code> &mdash; <?php esc_html_e( "the shopper's first name", 'oyster-wc-interakt' ); ?></li>
-					<li><code>{{2}}</code> &mdash; <?php esc_html_e( 'the one-line summary of their scan', 'oyster-wc-interakt' ); ?></li>
-					<li><code>{{3}}</code> &mdash; <?php esc_html_e( 'their recommended products, comma separated', 'oyster-wc-interakt' ); ?></li>
-					<li><code>{{4}}</code> &mdash; <?php esc_html_e( 'a link that adds those products to their cart', 'oyster-wc-interakt' ); ?></li>
-				</ol>
 
 				<?php submit_button(); ?>
 			</form>
@@ -128,14 +148,6 @@ final class Settings_Screen {
 				<td>
 					<input name="event_name_<?php echo esc_attr( $event ); ?>" id="event_name_<?php echo esc_attr( $event ); ?>" type="text" class="regular-text" value="<?php echo esc_attr( Settings::event_name( $event ) ); ?>" />
 					<p class="description"><?php esc_html_e( 'What this event is called on the customer timeline in Interakt.', 'oyster-wc-interakt' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th scope="row"><label for="template_<?php echo esc_attr( $event ); ?>"><?php esc_html_e( 'Template name', 'oyster-wc-interakt' ); ?></label></th>
-				<td>
-					<input name="template_<?php echo esc_attr( $event ); ?>" id="template_<?php echo esc_attr( $event ); ?>" type="text" class="regular-text" value="<?php echo esc_attr( Settings::template_name( $event ) ); ?>" />
-					<input name="template_language_<?php echo esc_attr( $event ); ?>" type="text" class="small-text" value="<?php echo esc_attr( Settings::template_language( $event ) ); ?>" aria-label="<?php esc_attr_e( 'Template language code', 'oyster-wc-interakt' ); ?>" />
-					<p class="description"><?php esc_html_e( 'The template code name from Interakt, and its language code. Blank sends no message.', 'oyster-wc-interakt' ); ?></p>
 				</td>
 			</tr>
 		</table>
