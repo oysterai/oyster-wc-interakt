@@ -27,8 +27,8 @@ final class Settings_Screen {
 	public function add_page(): void {
 		add_submenu_page(
 			'options-general.php',
-			__( 'Oyster WhatsApp', 'oyster-wc-interakt' ),
-			__( 'Oyster WhatsApp', 'oyster-wc-interakt' ),
+			__( 'Oyster Interakt', 'oyster-wc-interakt' ),
+			__( 'Oyster Interakt', 'oyster-wc-interakt' ),
 			'manage_options',
 			self::SLUG,
 			array( $this, 'render' )
@@ -42,11 +42,22 @@ final class Settings_Screen {
 
 		check_admin_referer( self::NONCE );
 
-		// Unslashed but not otherwise filtered here: Settings::save() sanitises each
-		// field, and the two API keys must survive verbatim.
+		// Unslashed but not otherwise filtered: Settings::save() sanitises each field,
+		// and the API key must survive verbatim.
 		Settings::save( wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
-		wp_safe_redirect( add_query_arg( 'updated', '1', menu_page_url( self::SLUG, false ) ) );
+		// Built by hand rather than with menu_page_url(): admin-post.php fires admin_init
+		// but never loads the admin menu, so that returns an empty string here and the
+		// redirect lands nowhere.
+		wp_safe_redirect(
+			add_query_arg(
+				array(
+					'page'    => self::SLUG,
+					'updated' => '1',
+				),
+				admin_url( 'options-general.php' )
+			)
+		);
 		exit;
 	}
 
@@ -57,7 +68,7 @@ final class Settings_Screen {
 
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Oyster WhatsApp', 'oyster-wc-interakt' ); ?></h1>
+			<h1><?php esc_html_e( 'Oyster Interakt', 'oyster-wc-interakt' ); ?></h1>
 
 			<?php if ( isset( $_GET['updated'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<div class="notice notice-success is-dismissible">

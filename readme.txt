@@ -1,4 +1,4 @@
-=== Oyster WhatsApp for WooCommerce ===
+=== Oyster Interakt for WooCommerce ===
 Contributors: oysterskin
 Tags: woocommerce, whatsapp, interakt, skincare, notifications
 Requires at least: 6.4
@@ -81,7 +81,7 @@ you save it.
 1. Install and connect **Oyster for WooCommerce**.
 2. Install and activate this plugin.
 3. In Interakt, copy your API key from **Developer Settings**.
-4. Go to **Settings → Oyster WhatsApp**, paste it, and enable the events you want.
+4. Go to **Settings → Oyster Interakt**, paste it, and enable the events you want.
 5. In Interakt, build an automation against those events and decide what the shopper
    receives.
 

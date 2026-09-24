@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name:       Oyster WhatsApp for WooCommerce
+ * Plugin Name:       Oyster Interakt for WooCommerce
  * Plugin URI:        https://oysterskin.com/woocommerce
- * Description:       Send Oyster skin scan results and product recommendations to shoppers on WhatsApp, through your own Interakt account. Requires Oyster for WooCommerce.
+ * Description:       Push Oyster skin scan results and product recommendations into your own Interakt account, and build the WhatsApp message there. Requires Oyster for WooCommerce.
  * Version:           0.1.0
  * Requires at least: 6.4
  * Requires PHP:      8.1
@@ -61,7 +61,7 @@ function meets_requirements(): bool {
 					esc_html(
 						sprintf(
 							/* translators: 1: required PHP version, 2: current PHP version */
-							__( 'Oyster WhatsApp for WooCommerce requires PHP %1$s or newer. You are running %2$s.', 'oyster-wc-interakt' ),
+							__( 'Oyster Interakt for WooCommerce requires PHP %1$s or newer. You are running %2$s.', 'oyster-wc-interakt' ),
 							OYSTER_WC_INTERAKT_MIN_PHP,
 							PHP_VERSION
 						)

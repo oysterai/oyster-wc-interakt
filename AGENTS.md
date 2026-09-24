@@ -5,7 +5,7 @@ this file; everything lives here so there is one copy to keep correct.
 
 ## What this is
 
-**Oyster WhatsApp for WooCommerce** is a WordPress plugin that delivers a
+**Oyster Interakt for WooCommerce** is a WordPress plugin that delivers a
 shopper's skin scan results and product recommendations over WhatsApp, through
 the merchant's own [Interakt](https://www.interakt.shop) account.
 
