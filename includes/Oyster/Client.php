@@ -32,7 +32,7 @@ final class Client {
 			);
 		}
 
-		$response = apply_filters( self::FILTER, null, '/skin/delivery/' . rawurlencode( $batch_id ) );
+		$response = apply_filters( self::FILTER, null, '/api/v1/skin/delivery/' . rawurlencode( $batch_id ) );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;

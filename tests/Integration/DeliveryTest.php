@@ -156,7 +156,7 @@ final class DeliveryTest extends WP_UnitTestCase {
 		( new Dispatcher() )->deliver( self::BATCH, Settings::EVENT_SCAN );
 
 		// No key of its own: the store credential stays with the plugin that owns it.
-		$this->assertTrue( $this->called( 'oyster:/skin/delivery/' ) );
+		$this->assertTrue( $this->called( 'oyster:/api/v1/skin/delivery/' . self::BATCH ) );
 	}
 
 	public function test_it_records_the_customer_then_the_event(): void {
