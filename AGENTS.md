@@ -5,18 +5,32 @@ this file; everything lives here so there is one copy to keep correct.
 
 ## What this is
 
-**Oyster WhatsApp for WooCommerce** is a WordPress plugin that delivers a
+**Oyster Interakt for WooCommerce** is a WordPress plugin that delivers a
 shopper's skin scan results and product recommendations over WhatsApp, through
 the merchant's own [Interakt](https://www.interakt.shop) account.
 
 It is an add-on. It does no scanning, stores no results, and renders nothing on
 the storefront. It listens for the action hooks fired by **Oyster for
-WooCommerce**, fetches the detail those hooks point at, and forwards it to
-Interakt. The merchant designs the message templates and automations in their
-own Interakt dashboard, in their own words.
+WooCommerce**, fetches the detail those hooks point at, and records it against
+the shopper in Interakt.
 
-Requires the Oyster for WooCommerce plugin, connected. Does not talk to
-WooCommerce directly.
+**It never sends a message.** It pushes data and stops. The merchant builds the
+automation in Interakt and decides what the shopper receives. Do not add a send
+path here: the moment this plugin composes messages, their design language and
+ours have to be kept in step.
+
+Requires the Oyster for WooCommerce plugin, connected, and WooCommerce itself.
+WooCommerce is checked even though no WooCommerce API is called here, because
+Action Scheduler ships inside it and every queued send goes through it. The
+Oyster plugin cannot stand in for that check: it still loads when WooCommerce is
+absent, defining its version constant while never booting.
+
+**Both are checked at runtime, not declared in a `Requires Plugins` header.**
+That header resolves on the installed folder name rather than the plugin's
+identity, so a dependency installed from a zip (a GitHub download names its
+folder `-main`) reads as absent however active it is. WordPress then refuses
+activation permanently, telling the merchant to install something they already
+have. A runtime failure that names what is missing is recoverable; that is not.
 
 ## Architecture
 
@@ -83,12 +97,12 @@ account level, and the merchant is the data controller.
 - **The Interakt API key is merchant-supplied and secret.** Store it
   encrypted. Never log it, never echo it into an admin notice or a settings
   page value attribute, never include it in a support export or a bug report.
-- **Never decrypt the Oyster for WooCommerce credential directly.** That
-  plugin owns it. Go through the accessor it exposes, so one plugin remains
-  responsible for that secret.
-- **Customer phone numbers and names leave the site on this path.** Send the
-  minimum a template needs. Do not widen the payload because a field happened
-  to be available.
+- **This plugin holds no Oyster credential.** Scans are read through the
+  `oyster_woocommerce_api_get` filter, so the store's key stays with the plugin
+  that owns it and dies with the connection. Never read or decrypt that option
+  directly, and never add a second Oyster key to the settings screen.
+- **Customer phone numbers and names leave the site on this path.** Send what an
+  automation needs to build a message, not everything the API returns.
 - **Do not send skin analysis detail as traits.** Scores, concern severities
   and raw analysis stay out. The scan detail is reachable by the merchant
   through their own dashboard; it does not belong in a marketing tool's user

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Unit tests only: classes whose behaviour is plain PHP, exercised without
+    loading WordPress, so the suite runs on every push without a WordPress
+    install in CI.
+
+    Anything that needs WordPress for real (hooks firing, options, the queue)
+    belongs in the integration suite, not here behind a stub.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         failOnWarning="true"
+         failOnRisky="true"
+         beStrictAboutOutputDuringTests="true"
+         cacheResultFile=".phpunit.cache/result">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
