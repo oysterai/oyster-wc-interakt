@@ -41,6 +41,44 @@ final class SettingsScreenTest extends WP_UnitTestCase {
 		throw new Exception( (string) $location );
 	}
 
+	private function render(): string {
+		ob_start();
+		( new Settings_Screen() )->render();
+
+		return (string) ob_get_clean();
+	}
+
+	public function test_a_saved_key_looks_saved(): void {
+		Settings::save( array( 'interakt_api_key' => 'sk_live_abcdef123456' ) );
+
+		$html = $this->render();
+
+		$this->assertStringContainsString( 'A key is saved', $html );
+		$this->assertStringContainsString( str_repeat( '•', 28 ), $html );
+	}
+
+	public function test_an_empty_field_says_where_to_get_one(): void {
+		$html = $this->render();
+
+		$this->assertStringNotContainsString( 'A key is saved', $html );
+		$this->assertStringContainsString( 'Developer Settings', $html );
+	}
+
+	public function test_the_key_is_never_written_into_the_field(): void {
+		// A value would post back untouched on the next save and overwrite the real key,
+		// since only a blank field means "keep what you have".
+		Settings::save( array( 'interakt_api_key' => 'sk_live_abcdef123456' ) );
+
+		$this->assertStringNotContainsString( 'sk_live_abcdef123456', $this->render() );
+	}
+
+	public function test_saving_with_the_field_left_blank_keeps_the_key(): void {
+		Settings::save( array( 'interakt_api_key' => 'sk_live_abcdef123456' ) );
+		Settings::save( array( 'interakt_api_key' => '', 'enable_scan_completed' => '1' ) );
+
+		$this->assertSame( 'sk_live_abcdef123456', Settings::interakt_api_key() );
+	}
+
 	public function test_saving_sends_the_admin_back_to_the_settings_page(): void {
 		// admin-post.php fires admin_init but never loads the admin menu, so building
 		// this with menu_page_url() yields an empty target and a blank page.

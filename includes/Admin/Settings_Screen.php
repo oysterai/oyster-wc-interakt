@@ -82,14 +82,33 @@ final class Settings_Screen {
 
 				<h2><?php esc_html_e( 'Interakt', 'oyster-wc-interakt' ); ?></h2>
 				<table class="form-table" role="presentation">
+					<?php $has_key = null !== Settings::interakt_api_key(); ?>
 					<tr>
 						<th scope="row"><label for="interakt_api_key"><?php esc_html_e( 'Interakt API key', 'oyster-wc-interakt' ); ?></label></th>
 						<td>
-							<input name="interakt_api_key" id="interakt_api_key" type="password" class="regular-text" autocomplete="off" value="" />
-							<p class="description">
-								<?php esc_html_e( 'From Interakt, under Developer Settings. Leave blank to keep the current key.', 'oyster-wc-interakt' ); ?>
-								<?php echo Settings::interakt_api_key() ? '<strong>' . esc_html__( 'A key is stored.', 'oyster-wc-interakt' ) . '</strong>' : ''; ?>
-							</p>
+							<?php
+							/*
+							 * Masked in the placeholder, never the value. A value would be posted
+							 * back untouched on the next save and stored as the key, destroying
+							 * the real one, since only a blank field means "keep what you have".
+							 */
+							?>
+							<input
+								name="interakt_api_key"
+								id="interakt_api_key"
+								type="password"
+								class="regular-text"
+								autocomplete="off"
+								value=""
+								placeholder="<?php echo esc_attr( $has_key ? str_repeat( '•', 28 ) : '' ); ?>" />
+							<?php if ( $has_key ) : ?>
+								<p class="description" style="color:#00a32a;">
+									<span class="dashicons dashicons-yes-alt" style="vertical-align:text-bottom;"></span>
+									<?php esc_html_e( 'A key is saved. Leave this blank to keep it, or paste a new one to replace it.', 'oyster-wc-interakt' ); ?>
+								</p>
+							<?php else : ?>
+								<p class="description"><?php esc_html_e( 'From Interakt, under Developer Settings.', 'oyster-wc-interakt' ); ?></p>
+							<?php endif; ?>
 						</td>
 					</tr>
 				</table>
