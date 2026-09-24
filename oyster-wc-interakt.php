@@ -87,6 +87,10 @@ add_action(
 			return;
 		}
 
+		// Ahead of the dependency gate: a site whose dependencies are broken is
+		// exactly the one that may need the update carrying the fix.
+		Support\Self_Updater::register();
+
 		$missing = Plugin::missing_dependencies();
 
 		if ( array() !== $missing ) {

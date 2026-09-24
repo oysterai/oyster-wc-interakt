@@ -1,0 +1,115 @@
+name: Release
+
+# Publishing a GitHub Release (with the built zip attached as an asset) is
+# what Support\Self_Updater / Plugin Update Checker actually checks for — see
+# includes/Support/Self_Updater.php. No manual zip upload, no separate hosting.
+#
+# Cutting a release is two deliberate steps:
+#   1. git tag v1.2.3 && git push --tags  -> this workflow stages a DRAFT
+#      release with the zips already attached
+#   2. review that draft and publish it   -> that is what ships
+#
+# It runs on the tag push, and its only job is to prepare a draft. A draft
+# reaches nobody, so building on a push costs nothing; publishing stays the
+# decision that ships.
+#
+# It CANNOT run after publishing. A published release is immutable and assets
+# can only be added while it is still a draft, so attaching on
+# `release: published` fails with "Cannot upload asset to an immutable release"
+# and leaves a live release carrying no zip — the one thing the self-updater
+# needs.
+#
+# `workflow_dispatch` rebuilds the draft for a tag that already exists.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build and attach (e.g. v0.12.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      # The tag comes from the ref on a push, and from the input on a manual
+      # run. GITHUB_REF_NAME is not usable for both: on a manual run it is the
+      # branch the workflow was started from, not a tag.
+      - name: Resolve the tag being released
+        id: tag
+        env:
+          PUSHED_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG="${PUSHED_TAG:-$INPUT_TAG}"
+          if [ -z "$TAG" ]; then
+            echo "::error::No tag to build. Push a tag, or supply one when running manually." >&2
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Building $TAG"
+
+      # Build from the tag, not from whatever the default branch holds now, so
+      # a release always ships the code it names.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Verify tag matches the plugin's Version header
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${TAG#v}"
+          HEADER_VERSION=$(sed -n -E 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]+([0-9][0-9.]*).*/\1/p' oyster-wc-interakt.php | head -1)
+          if [ "$TAG_VERSION" != "$HEADER_VERSION" ]; then
+            echo "::error::Tag $TAG does not match the plugin header's Version: $HEADER_VERSION. Bump the Version (and OYSTER_WOO_VERSION) in oyster-wc-interakt.php first, or the self-updater will never detect this release." >&2
+            exit 1
+          fi
+          echo "Tag matches header version ($HEADER_VERSION) — continuing."
+
+      - name: Build release zip
+        run: bin/build-release-zip.sh
+
+      - name: Add a stable-named copy for direct download links
+        # Same content as the versioned zip — just a second copy under a
+        # filename that never changes, so anywhere that links to the download
+        # doesn't need updating every release:
+        #   .../releases/latest/download/oyster-wc-interakt.zip
+        run: cp dist/oyster-wc-interakt-*.zip dist/oyster-wc-interakt.zip
+
+      # Refuse plainly rather than fail inside the upload. A published release
+      # cannot take new assets, so there is nothing useful to do here.
+      - name: Refuse if this tag is already published
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          STATE=$(gh release view "$TAG" --json isDraft -q .isDraft 2>/dev/null || echo "none")
+          if [ "$STATE" = "false" ]; then
+            echo "::error::$TAG is already published. Published releases are immutable, so the zips can no longer be attached. Delete that release (the tag can stay) and re-run this, or cut a new version." >&2
+            exit 1
+          fi
+          echo "No published release for $TAG — staging a draft."
+
+      # Stages a DRAFT with the zips attached. Publishing is left to a human:
+      # it is the step that ships, and also the last moment assets can be added,
+      # since publishing makes the release immutable.
+      #
+      # Release notes are deliberately not generated — whoever publishes writes
+      # them, and regenerating would overwrite that.
+      - name: Stage a draft release with the zips attached
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          draft: true
+          files: dist/*.zip
